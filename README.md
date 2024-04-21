@@ -2,8 +2,8 @@
 
 # Cloud9 - Making the Web faster
 ## Architecture:
-    There are 3 services we've made:
-    - upload service : upload the user's code to vercel system
+    There are 3 services I've made:
+    - upload service : upload the user's code to cloud9 system
     - deployment service : build (html/css/js) and deploy 
     - request handler service 
 
