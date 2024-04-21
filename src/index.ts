@@ -1,16 +1,18 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
-import fs from "fs";
 import simpleGit from "simple-git";
 import { generateId } from "./utils";
-import { uploadFile } from './aws'
 import { getAllFiles } from "./file";
-
+import path from "path";
+import { uploadFile } from "./aws";
 import { createClient } from "redis";
+import fs from 'fs';
 //we need to initialize a publisher, something that can publish to Redix
 const publisher = createClient();
 publisher.connect()
+
+const subscriber = createClient();
+subscriber.connect();
 
 
 const app = express();
@@ -48,7 +50,10 @@ app.post("/deploy", async (req, res) => {
         })
         
         // put this to S3
-        publisher.lPush("build-queue", id)
+        publisher.lPush("build-queue", id);
+        // INSERT => SQL
+        // .create => 
+        publisher.hSet("status", id, "uploaded");
         res.json({
             id: id,
         });
@@ -58,6 +63,14 @@ app.post("/deploy", async (req, res) => {
         res.status(500).json({ error: "Failed to deploy the repository." });
     }
 });
+
+app.get("/status", async (req, res) => {
+    const id = req.query.id;
+    const response = await subscriber.hGet("status", id as string);
+    res.json({
+        status: response
+    })
+})
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
